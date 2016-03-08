@@ -9,25 +9,33 @@ import org.mdacc.rists.cghub.model.SeqTb;
 
 public class CghubDao {
 	
-	static EntityManager entityManager;
+	EntityManager entityManager;
 	
-	public CghubDao(EntityManager entityManager) {
-		this.entityManager = entityManager;
+	
+	
+	public CghubDao() {
+		
 	}
 	
 
-	public static void insertSeq(SeqTb seq) {
+	public CghubDao(EntityManager manager) {
+		this.entityManager = manager;
+	}
+
+
+	public void insertSeq(SeqTb seq) {
 		EntityTransaction transaction = entityManager.getTransaction();
         try {
             transaction.begin();
             entityManager.persist(seq);
             transaction.commit();
         } catch (Exception e) {
+        	e.printStackTrace();
             transaction.rollback();
         }
 	}
 	
-	public static void insertPair(PairTb pair) {
+	public void insertPair(PairTb pair) {
 		EntityTransaction transaction = entityManager.getTransaction();
         try {
             transaction.begin();
@@ -38,7 +46,7 @@ public class CghubDao {
         }
 	}
 	
-	public static void insertGroup(GroupTb group) {
+	public void insertGroup(GroupTb group) {
 		EntityTransaction transaction = entityManager.getTransaction();
         try {
             transaction.begin();

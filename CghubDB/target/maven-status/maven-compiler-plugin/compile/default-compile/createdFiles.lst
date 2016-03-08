@@ -1,5 +1,4 @@
-pandb/QueryDatabase.class
-pandb/ConnectDB.class
-pandb/InsertRecord.class
-pandb/InsertRecord$1.class
-pandb/CGHubData.class
+org/mdacc/rists/cghub/model/PairTb.class
+org/mdacc/rists/cghub/model/SeqTb.class
+org/mdacc/rists/cghub/model/GroupTb.class
+org/mdacc/rists/cghub/dao/CghubDao.class

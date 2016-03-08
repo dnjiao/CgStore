@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
 import org.mdacc.rists.cghub.dao.CghubDao;
 import org.mdacc.rists.cghub.model.SeqTb;
 import org.mdacc.rists.cghub.model.GroupTb;
@@ -23,6 +27,9 @@ public class InsertRecord {
 	static int recordCount = 0;
 	
     public static void main(String[] args) {
+    	EntityManagerFactory factory = Persistence.createEntityManagerFactory("CghubDB");
+    	EntityManager manager = factory.createEntityManager();
+		CghubDao dao = new CghubDao(manager);
 
         try
         {
@@ -30,7 +37,7 @@ public class InsertRecord {
     		if (args[0].equalsIgnoreCase("-S")) {
     			
     			if (args.length == 2) {
-    				readSingles(args[1]);
+    				readSingles(args[1], dao);
     			}
     			else {
     				System.out.print("Usage: InsertRecord -S [path to dirs/files].");
@@ -39,7 +46,7 @@ public class InsertRecord {
     		}
     		else if (args[0].equalsIgnoreCase("-P")) { // pair record mode
     			if (args.length == 2) { // single sample
-    				readPairs(args[1]);
+    				readPairs(args[1], dao);
     			}
     			else {
     				System.out.print("Usage: InsertRecord -P [path to group dir]");
@@ -59,7 +66,7 @@ public class InsertRecord {
  * Read from either all .info from a directory or a single .info file 
  * and push all attributes to database
  */
-    public static void readSingles(String str) {
+    public static void readSingles(String str, CghubDao dao) {
 		File dir = new File(str);
 		if (!dir.isDirectory()){
 			System.out.println("ERROR: " + str + " is not a directory.");
@@ -69,30 +76,30 @@ public class InsertRecord {
 		else if (isSeedDir(dir)) {
 			File infoFile = new File(dir, dir.getName() + ".info");
 			SeqTb seq = parseInfoFile(infoFile);
-			CghubDao.insertSeq(seq);
+			dao.insertSeq(seq);
 			recordCount = 1;
 		}
 		// parent folder of multiple sequences 
 		else {
 			File[] files = dir.listFiles();
-			walkFiles(files);
+			walkFiles(files, dao);
 		}
 		
 		System.out.println("Total of " + recordCount + " records inserted.");
     }
     
-    public static void walkFiles(File[] files) {
+    public static void walkFiles(File[] files, CghubDao dao) {
     	for (File file : files) {
     		if (file.isDirectory()) {
     			if (!isSeedDir(file)) {
-    				walkFiles(file.listFiles());
+    				walkFiles(file.listFiles(), dao);
     			}
     			else {
     				File infoFile = new File(file, file.getName() + ".info");
     				SeqTb seq = parseInfoFile(infoFile);
     				if (seq != null) {
     					try {
-    						CghubDao.insertSeq(seq);
+    						dao.insertSeq(seq);
     						
     					} catch (Exception e) {
     						System.out.println("ERROR: with " + infoFile.getAbsolutePath());
@@ -130,7 +137,7 @@ public class InsertRecord {
 	 * 
 	 * @param dir, name of donor directory that includes two subfolders
 	 */
-	public static void readPairs(String path) {
+	public static void readPairs(String path, CghubDao dao) {
 		File groupdir = new File(path);
 		// name of the top level directory is the name of data group
 		String groupName = groupdir.getName();
@@ -159,7 +166,7 @@ public class InsertRecord {
 							File infoFile = new File(f.getParent(), idStr + ".info");
 							if (infoFile.exists()) {
 								SeqTb seq = parseInfoFile(infoFile);
-								CghubDao.insertSeq(seq);
+//								dao.insertSeq(seq);
 								seqList.add(seq);
 								counter ++;
 								break;
@@ -172,7 +179,7 @@ public class InsertRecord {
 					else {
 						pair.setSeqTbs(seqList);
 					}
-					CghubDao.insertPair(pair);
+//					dao.insertPair(pair);
 					pairList.add(pair);
 				}
 				
@@ -182,7 +189,7 @@ public class InsertRecord {
 			System.out.println("No pair is found in directory " + groupdir.getAbsolutePath());
 		}
 		else {
-			CghubDao.insertGroup(group);
+			dao.insertGroup(group);
 			System.out.println("Total of " + pairList.size() + " pairs " + counter + " sequences inserted.");
 		}
 		
@@ -197,7 +204,6 @@ public class InsertRecord {
     public static SeqTb parseInfoFile(File file) {
         //indicator of file type
         String fileType = "";
-//        File f = new File(filename);
         SeqTb seq = new SeqTb();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         try {
@@ -212,14 +218,14 @@ public class InsertRecord {
                 
                 // Set common fields
                 if(lineStr.startsWith("analysis_id")) {
-                   seq.setAnalysisId(lineStr.split("                  : ")[1]);
+                   seq.setAnalysisId(lineStr.split("                  : ")[1]);                        
                 }
                 if(lineStr.startsWith("last_modified")) {
                     String dateStr = lineStr.split("                : ")[1].split("T")[0];
                     seq.setLastModified(formatter.parse(dateStr));
                 }
                 if(lineStr.startsWith("published_date")) {
-                    String dateStr = lineStr.split("                : ")[1].split("T")[0];
+                    String dateStr = lineStr.split("               : ")[1].split("T")[0];
                     seq.setPublishedDate(formatter.parse(dateStr));
                 }
                 if(lineStr.startsWith("center_name")) {
@@ -235,30 +241,33 @@ public class InsertRecord {
                 if(lineStr.startsWith("filename") && lineStr.endsWith(".bam")) {
                     fileType = "bam";
                     String bamName = lineStr.split("             : ")[1];
-                    File bamFile = new File(path + "/" + bamName);
-                    if(bamFile.exists()) {
-                        seq.setFilepath(bamFile.getCanonicalPath());
-                        seq.setFilename(bamName);
-                        seq.setSeqFormat("bam");
-                    }
-                    else {
-                    	System.out.println("File " + bamFile.getCanonicalPath() + " does not exist");
-                    }  
+//                    File bamFile = new File(path + "/" + bamName);
+//                    if(bamFile.exists()) {
+//                        seq.setFilepath(bamFile.getCanonicalPath());
+//                        
+//                    }
+//                    else {
+//                    	System.out.println("File " + bamFile.getCanonicalPath() + " does not exist");
+//                    }  
+                    seq.setFilename(bamName);
+                    seq.setSeqFormat("bam");
                 }
-                
+                if(lineStr.startsWith("filename") && lineStr.endsWith(".bai")) {
+                    fileType = "bai";
+                }
                 if(lineStr.startsWith("filename") && lineStr.indexOf(".tar") > 0) {
                     fileType = "fastq";
                     String fastqName = lineStr.split("             : ")[1];
-                    File fastqFile = new File(path + "/" + fastqName);
-                   
-                    if(fastqFile.exists()) {
-                        seq.setFilepath(fastqFile.getCanonicalPath());   
-                        seq.setFilename(fastqName);
-                        seq.setSeqFormat("fastq");
-                    }
-                    else {
-                    	System.out.println("File " + fastqFile.getCanonicalPath() + " does not exist");
-                    }
+//                    File fastqFile = new File(path + "/" + fastqName);                   
+//                    if(fastqFile.exists()) {
+//                        seq.setFilepath(fastqFile.getCanonicalPath());   
+//                        
+//                    }
+//                    else {
+//                    	System.out.println("File " + fastqFile.getCanonicalPath() + " does not exist");
+//                    }
+                    seq.setFilename(fastqName);
+                    seq.setSeqFormat("fastq");
                 }
                 if(lineStr.startsWith("filesize")) {
                     if(fileType != "bai") {
@@ -276,9 +285,7 @@ public class InsertRecord {
                 if(lineStr.startsWith("sample_id")) { 
                 	seq.setSampleId(lineStr.split("                    : ")[1]);
                 }
-//                if(lineStr.startsWith("library_strategy")) { 
-//                	seq.setLibrary(lineStr.split("             : ")[1]);
-//                }
+
                 if(lineStr.startsWith("platform")) { 
                 	seq.setPlatform(lineStr.split("                     : ")[1]);
                 }
@@ -300,7 +307,7 @@ public class InsertRecord {
                 	seq.setTssId(lineStr.split("                       : ")[1]);
                 }
                 if(lineStr.startsWith("analyte_code")) {
-                	seq.setAnalysisId(lineStr.split("                 : ")[1]);
+                	seq.setAnalyteCode(lineStr.split("                 : ")[1]);
                 }
                 if(lineStr.startsWith("sample_type")) {
                 	seq.setSampleType(lineStr.split("                  : ")[1]); // also set normal/tumor
