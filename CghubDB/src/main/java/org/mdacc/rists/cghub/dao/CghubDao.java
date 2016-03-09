@@ -11,17 +11,12 @@ public class CghubDao {
 	
 	EntityManager entityManager;
 	
-	
-	
-	public CghubDao() {
-		
-	}
-	
+	public CghubDao() {		
+	}	
 
 	public CghubDao(EntityManager manager) {
 		this.entityManager = manager;
 	}
-
 
 	public void insertSeq(SeqTb seq) {
 		EntityTransaction transaction = entityManager.getTransaction();

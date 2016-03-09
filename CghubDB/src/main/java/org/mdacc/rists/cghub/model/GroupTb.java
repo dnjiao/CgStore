@@ -26,7 +26,7 @@ public class GroupTb implements Serializable {
 	private String groupName;
 
 	//bi-directional many-to-one association to PairTb
-	@OneToMany(mappedBy="groupTb")
+	@OneToMany(mappedBy="groupTb", cascade=CascadeType.ALL)
 	private List<PairTb> pairTbs;
 
 	public GroupTb() {

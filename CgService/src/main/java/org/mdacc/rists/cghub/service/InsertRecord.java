@@ -157,7 +157,7 @@ public class InsertRecord {
 				
 				// only read the files in dirs that has two subfolders (normal, tumor)
 				if (samples.length == 2) { 
-					PairTb pair = new PairTb(pairdir.getName(), group);
+					PairTb pair = new PairTb(pairdir.getName());
 					List<SeqTb> seqList = new ArrayList<SeqTb>();
 					for (File sampDir : samples) {
 						File[] files = sampDir.listFiles();
@@ -166,7 +166,7 @@ public class InsertRecord {
 							File infoFile = new File(f.getParent(), idStr + ".info");
 							if (infoFile.exists()) {
 								SeqTb seq = parseInfoFile(infoFile);
-//								dao.insertSeq(seq);
+								seq.setPairTb(pair);
 								seqList.add(seq);
 								counter ++;
 								break;
@@ -179,16 +179,17 @@ public class InsertRecord {
 					else {
 						pair.setSeqTbs(seqList);
 					}
-//					dao.insertPair(pair);
+					pair.setGroupTb(group);
 					pairList.add(pair);
 				}
 				
 			}
 		}
-		if (pairList == null) {
+		if (pairList.size() == 0) {
 			System.out.println("No pair is found in directory " + groupdir.getAbsolutePath());
 		}
 		else {
+			group.setPairTbs(pairList);
 			dao.insertGroup(group);
 			System.out.println("Total of " + pairList.size() + " pairs " + counter + " sequences inserted.");
 		}

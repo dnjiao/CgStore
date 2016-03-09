@@ -31,16 +31,15 @@ public class PairTb implements Serializable {
 	private GroupTb groupTb;
 
 	//bi-directional many-to-one association to SeqTb
-	@OneToMany(mappedBy="pairTb")
+	@OneToMany(mappedBy="pairTb", cascade=CascadeType.ALL)
 	private List<SeqTb> seqTbs;
 
 	public PairTb() {
 	}
 
-	public PairTb(String pairCode, GroupTb groupTb) {
+	public PairTb(String pairCode) {
 		super();
 		this.pairCode = pairCode;
-		this.groupTb = groupTb;
 	}
 
 
