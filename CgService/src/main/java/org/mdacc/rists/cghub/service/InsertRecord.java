@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.*;
+import java.nio.file.Path;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -27,6 +28,7 @@ public class InsertRecord {
 	static int recordCount = 0;
 	
     public static void main(String[] args) {
+
     	EntityManagerFactory factory = Persistence.createEntityManagerFactory("CghubDB");
     	EntityManager manager = factory.createEntityManager();
 		CghubDao dao = new CghubDao(manager);
@@ -182,7 +184,6 @@ public class InsertRecord {
 					pair.setGroupTb(group);
 					pairList.add(pair);
 				}
-				
 			}
 		}
 		if (pairList.size() == 0) {
@@ -242,14 +243,7 @@ public class InsertRecord {
                 if(lineStr.startsWith("filename") && lineStr.endsWith(".bam")) {
                     fileType = "bam";
                     String bamName = lineStr.split("             : ")[1];
-//                    File bamFile = new File(path + "/" + bamName);
-//                    if(bamFile.exists()) {
-//                        seq.setFilepath(bamFile.getCanonicalPath());
-//                        
-//                    }
-//                    else {
-//                    	System.out.println("File " + bamFile.getCanonicalPath() + " does not exist");
-//                    }  
+                    seq.setFilepath(getSeqFilePath(file));
                     seq.setFilename(bamName);
                     seq.setSeqFormat("bam");
                 }
@@ -259,14 +253,7 @@ public class InsertRecord {
                 if(lineStr.startsWith("filename") && lineStr.indexOf(".tar") > 0) {
                     fileType = "fastq";
                     String fastqName = lineStr.split("             : ")[1];
-//                    File fastqFile = new File(path + "/" + fastqName);                   
-//                    if(fastqFile.exists()) {
-//                        seq.setFilepath(fastqFile.getCanonicalPath());   
-//                        
-//                    }
-//                    else {
-//                    	System.out.println("File " + fastqFile.getCanonicalPath() + " does not exist");
-//                    }
+                    seq.setFilepath(getSeqFilePath(file));
                     seq.setFilename(fastqName);
                     seq.setSeqFormat("fastq");
                 }
@@ -337,6 +324,24 @@ public class InsertRecord {
         }
         return seq;
     }
+
+private static String getSeqFilePath(File file) {
+	List<String> dirTree = new ArrayList<String>();
+	File parent = file.getParentFile();
+	String parentDir = parent.getName();
+	while (!parentDir.equalsIgnoreCase("cghub")) {
+		dirTree.add(0, parentDir);
+		parent = parent.getParentFile();
+		parentDir = parent.getName();
+	}
+	// build filepath with dir tree
+	String filepath = "CGHUB_TOP";
+	for (String dir : dirTree) {
+		filepath += "/" + dir;
+	}
+	
+	return filepath;
+}
 
 }
     
