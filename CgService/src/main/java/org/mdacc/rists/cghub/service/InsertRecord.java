@@ -298,7 +298,9 @@ public class InsertRecord {
                 	seq.setAnalyteCode(lineStr.split("                 : ")[1]);
                 }
                 if(lineStr.startsWith("sample_type")) {
-                	seq.setSampleType(lineStr.split("                  : ")[1]); // also set normal/tumor
+                	String sampType = lineStr.split("                  : ")[1];
+                	seq.setSampleType(sampType); // also set normal/tumor
+                	seq.setTissueType(tumorOrNormal(sampType));
                 }
                 
                 // Set ICGC only fields
@@ -307,10 +309,18 @@ public class InsertRecord {
                 	seq.setSeqSource("ICGC");
                 }
                 if(lineStr.startsWith("dcc_specimen_type")) {
-                	seq.setDccSpecimenType(lineStr.split("            : ")[1]);
+                	String speType = lineStr.split("            : ")[1];
+                	seq.setDccSpecimenType(speType);
+                	// also set tissuetype (tumor or normal)
+                	if (speType.toLowerCase().contains("normal")) {
+                		seq.setTissueType("normal");
+                	}
+                	if (speType.toLowerCase().contains("tumour")) {
+                		seq.setTissueType("tumor");
+                	}
                 }
                 if(lineStr.startsWith("specimen_id")) {
-                	seq.setSpecimenId(lineStr.split("                  : ")[1]);  // also set normal/tumor
+                	seq.setSpecimenId(lineStr.split("                  : ")[1]);  
                 }
                 
                 line = reader.readLine();
@@ -324,24 +334,81 @@ public class InsertRecord {
         }
         return seq;
     }
+    
 
-private static String getSeqFilePath(File file) {
-	List<String> dirTree = new ArrayList<String>();
-	File parent = file.getParentFile();
-	String parentDir = parent.getName();
-	while (!parentDir.equalsIgnoreCase("cghub")) {
-		dirTree.add(0, parentDir);
-		parent = parent.getParentFile();
-		parentDir = parent.getName();
+    /**
+     * determine tissue type based on sample type code
+     * @param sampType
+     * @return
+     */
+	private static String tumorOrNormal(String sampType) {
+		String tissue;
+		switch(sampType) {
+			case "01":
+	            tissue = "tumor";
+	            break;
+			case "02":
+	            tissue = "tumor";
+	            break;
+			case "03":
+	            tissue = "tumor";
+	            break;
+			case "04":
+	            tissue = "tumor";
+	            break;
+			case "05":
+	            tissue = "tumor";
+	            break;
+			case "06":
+	            tissue = "tumor";
+	            break;
+			case "07":
+	            tissue = "tumor";
+	            break;   
+			case "08":
+	            tissue = "tumor";
+	            break;
+			case "09":
+	            tissue = "tumor";
+	            break;
+			case "10":
+	            tissue = "normal";
+	            break;
+			case "11":
+	            tissue = "normal";
+	            break;
+			case "12":
+	            tissue = "normal";
+	            break;
+			case "13":
+	            tissue = "normal";
+	            break;
+			case "14":
+	            tissue = "normal";
+	            break;
+	        default:
+	        	tissue = "tumor";
+
+		}
+		return tissue;
 	}
-	// build filepath with dir tree
-	String filepath = "CGHUB_TOP";
-	for (String dir : dirTree) {
-		filepath += "/" + dir;
+
+	private static String getSeqFilePath(File file) {
+		List<String> dirTree = new ArrayList<String>();
+		File parent = file.getParentFile();
+		String parentDir = parent.getName();
+		while (!parentDir.equalsIgnoreCase("ltfs")) {
+			dirTree.add(0, parentDir);
+			parent = parent.getParentFile();
+			parentDir = parent.getName();
+		}
+		// build filepath with dir tree
+		String filepath = "CGHUB_TOP";
+		for (String dir : dirTree) {
+			filepath += "/" + dir;
+		}
+		return filepath;
 	}
-	
-	return filepath;
-}
 
 }
     
