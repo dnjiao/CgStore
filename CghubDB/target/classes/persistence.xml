@@ -7,7 +7,7 @@
 		<class>org.mdacc.rists.cghub.model.SeqTb</class>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
-            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://mdarisrac02d:3306/pancancer" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://r1prpmysql1:3306/pancancer" />
             <property name="javax.persistence.jdbc.user" value="dian" />
             <property name="javax.persistence.jdbc.password" value="mda2014" />
             

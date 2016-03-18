@@ -1,0 +1,4 @@
+org/mdacc/rists/cghub/model/SeqTb.class
+org/mdacc/rists/cghub/model/PairTb.class
+org/mdacc/rists/cghub/model/GroupTb.class
+org/mdacc/rists/cghub/dao/CghubDao.class

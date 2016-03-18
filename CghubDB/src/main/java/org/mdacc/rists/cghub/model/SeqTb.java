@@ -13,7 +13,12 @@ import java.util.Date;
  */
 @Entity
 @Table(name="SEQ_TB")
-@NamedQuery(name="SeqTb.findAll", query="SELECT s FROM SeqTb s")
+@NamedQueries({
+	@NamedQuery(name="seqtb.findAll", query="SELECT s FROM SeqTb s"),
+//	@NamedQuery(name="seqtb.findByAnalysisId", query="SELECT s FROM SeqTb s where s.analysisId = :analysisId"),
+	
+})
+
 public class SeqTb implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -79,6 +84,9 @@ public class SeqTb implements Serializable {
 
 	@Column(name="SAMPLE_TYPE")
 	private String sampleType;
+	
+	@Column(name="LIBRARY_STRATEGY")
+	private String library;
 
 	@Column(name="SEQ_FORMAT")
 	private String seqFormat;
@@ -308,6 +316,15 @@ public class SeqTb implements Serializable {
 
 	public void setSampleType(String sampleType) {
 		this.sampleType = sampleType;
+	}
+
+	
+	public String getLibrary() {
+		return library;
+	}
+
+	public void setLibrary(String library) {
+		this.library = library;
 	}
 
 	public String getSeqFormat() {

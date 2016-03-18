@@ -52,4 +52,9 @@ public class CghubDao {
         }
 	}
 	
+	public SeqTb findSeqByAnalysisId(String analysisId) {
+		SeqTb seq = (SeqTb)entityManager.createNamedQuery("seqtb.findByAnalysisId").setParameter("analysisId", analysisId).getSingleResult();
+		return seq;
+	}
+	
 }
